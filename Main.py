@@ -3,7 +3,6 @@ import datetime
 cap = cv2.VideoCapture(0)
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 smile_cascade = cv2.CascadeClassifier('haarcascade_smile.xml')
-eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
 file_counter = 0
 while True:
     _, frame = cap.read()
@@ -22,9 +21,6 @@ while True:
             file_counter += 1
             file_name = f'selfie-{time_stamp} ({file_counter}).png'
             cv2.imwrite(file_name, original_frame)
-            eyes = eye_cascade.detectMultiScale(gray_roi)
-            for x2, y2, w2, h2 in eyes:
-              cv2.rectangle(face_roi,(x2,y2),(x2+w2,y2+h2),(255,255,255),2)
     frame = cv2.flip(frame, 1)
     cv2.imshow('Smile Please :) ', frame)
     if file_counter ==10:
