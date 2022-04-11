@@ -97,17 +97,9 @@ class MainWindow(QWidget):
         
     
     def Share(self):
-        regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
+        regex = '^[a-z0-9-A-Z]+[\._]?[a-z0-9-A-Z]+[@]\w+[.]\w{2,3}$'
         if (re.fullmatch(regex , self.email.text())):
             self.e_status.setText("Valid email address")
-        else:
-            self.e_status.setText("Invalid email address")
-
-
-        if self.email.text() == "":
-           self.e_status.setText("Please enter valid email address")
-           self.e_status.setStyleSheet("color: red;")
-        else:
             self.email.text()
             print(self.email.text())
             print(self.filedata)
@@ -117,6 +109,11 @@ class MainWindow(QWidget):
             self.e_status.setText("Sending...")
             self.e_status.setStyleSheet("color: blue;")
             self.Email_worker.start()
+
+        else:
+            self.e_status.setText("Invalid email address")
+            self.e_status.setStyleSheet("color: red;")
+
         
 
 class Email_worker(QThread):
