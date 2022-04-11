@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QWidget, QApplication, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QDesktopWidget,QLineEdit, QCheckBox
 from PyQt5.QtGui import QImage , QPixmap
-from PyQt5.QtCore import QThread, pyqtSignal, Qt 
+from PyQt5.QtCore import QThread, pyqtSignal, Qt
 import cv2
 import time 
 import datetime
@@ -10,6 +10,7 @@ from email import encoders
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
+import re
 
 
 class MainWindow(QWidget):
@@ -27,13 +28,14 @@ class MainWindow(QWidget):
         self.FeedBox.addWidget(self.FeedLabel)
         self.FeedBox.addStretch()
         self.VBL.addLayout(self.FeedBox)
-
         self.e_label = QLabel("Enter Email")
         self.email = QLineEdit()
         self.VBL.addWidget(self.e_label)
         self.VBL.addWidget(self.email)
-        self.r1 = QCheckBox("Select All")
-        self.VBL.addWidget(self.r1)
+        self.e_status = QLabel()
+        self.VBL.addWidget(self.e_status)
+        # self.r1 = QCheckBox("Select All")
+        # self.VBL.addWidget(self.r1)
 
         self.CancelBTN = QPushButton("Cancel")
         self.CancelBTN.resize(120,20)
@@ -55,11 +57,15 @@ class MainWindow(QWidget):
         self.ActionBox.addStretch()
 
         self.Worker1 = Worker1()
+        self.Email_worker = Email_worker()
+        self.Email_worker.email_status.connect(self.EmailStatus)
+        
         self.Worker1.start()
 
         self.Worker1.ImageUpdate.connect(self.ImageUpdateSlot)
         self.Worker1.capturedImage.connect(self.capturedImageSlot)
         self.Worker1.filename.connect(self.filecapture)
+        
         self.setLayout(self.VBL)
 
         
@@ -85,18 +91,38 @@ class MainWindow(QWidget):
         self.Worker1.stop()
         self.close()
 
+    def EmailStatus(self,status):
+        self.e_status.setText(status)
+        self.e_status.setStyleSheet("color: green;")
+        
+    
     def Share(self):
-        self.email.text()
-        print(self.email.text())
-        print(self.filedata)
-        self.Worker2 = Worker2()
-        self.Worker2.email_value = self.email.text()
-        self.Worker2.photos = self.filedata
-        self.Worker2.start()
+        regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
+        if (re.fullmatch(regex , self.email.text())):
+            self.e_status.setText("Valid email address")
+        else:
+            self.e_status.setText("Invalid email address")
 
-class Worker2(QThread):
+
+        if self.email.text() == "":
+           self.e_status.setText("Please enter valid email address")
+           self.e_status.setStyleSheet("color: red;")
+        else:
+            self.email.text()
+            print(self.email.text())
+            print(self.filedata)
+
+            self.Email_worker.email_value = self.email.text()
+            self.Email_worker.photos = self.filedata
+            self.e_status.setText("Sending...")
+            self.e_status.setStyleSheet("color: blue;")
+            self.Email_worker.start()
+        
+
+class Email_worker(QThread):
     email_value = ""
     photos = []
+    email_status = pyqtSignal(str)
     def run(self):
         
         # create message object instance
@@ -107,7 +133,7 @@ class Worker2(QThread):
         msg['To'] = self.email_value
         msg['Subject'] = "Selfie Photos"
 
-        body = " "
+        body = "Glimpse of your great memories :) , Have a look !!"
         # attach the body with the msg instance
         msg.attach(MIMEText(body, 'plain'))
         
@@ -146,8 +172,9 @@ class Worker2(QThread):
         
         server.quit()
         
-        print ("successfully sent email to %s:" % (msg['To']))
-
+        status = f"successfully sent email to {msg['To']}"
+        print("successfully sent email to %s:" % (msg['To']))
+        self.email_status.emit(status)
 
 class Worker1(QThread):
     ImageUpdate = pyqtSignal(QImage)
