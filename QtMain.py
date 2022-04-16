@@ -1,7 +1,8 @@
 import sys
 from PyQt5.QtWidgets import QWidget, QApplication, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QDesktopWidget,QLineEdit, QCheckBox
-from PyQt5.QtGui import QImage , QPixmap
+from PyQt5.QtGui import QImage , QPixmap, QFont
 from PyQt5.QtCore import QThread, pyqtSignal, Qt
+from PyQt5 import QtCore
 import cv2
 import time 
 import datetime
@@ -22,24 +23,33 @@ class MainWindow(QWidget):
         self.VBL = QVBoxLayout()
         self.setWindowTitle("Smart Selfie")
         self.move(self.center())
+        self.message = QLabel("Smile please to capture photos")
+        self.message.setStyleSheet("color: green;")
+        self.message.setAlignment(QtCore.Qt.AlignCenter)
+        self.message.setFont(QFont('Arial', 11))
+        self.VBL.addWidget(self.message)
         self.FeedLabel = QLabel()
         self.FeedBox = QHBoxLayout()
         self.FeedBox.addStretch()
         self.FeedBox.addWidget(self.FeedLabel)
         self.FeedBox.addStretch()
         self.VBL.addLayout(self.FeedBox)
-        self.e_label = QLabel("Enter Email")
+        self.e_label = QLabel("Enter your email to receive your photos !")
+        self.e_label.setStyleSheet("color: blue;")
+        self.e_label.setFont(QFont('Arial', 10))
         self.email = QLineEdit()
+        self.email.resize(200, 30)
+    
+        self.email.returnPressed.connect(self.Share)
         self.VBL.addWidget(self.e_label)
         self.VBL.addWidget(self.email)
         self.e_status = QLabel()
         self.VBL.addWidget(self.e_status)
-        # self.r1 = QCheckBox("Select All")
-        # self.VBL.addWidget(self.r1)
-
+        
         self.CancelBTN = QPushButton("Cancel")
         self.CancelBTN.resize(120,20)
         self.CancelBTN.clicked.connect(self.CancelFeed)
+        
         self.ShareBTN = QPushButton("Share")
         self.filedata = []
         
@@ -90,6 +100,11 @@ class MainWindow(QWidget):
     def CancelFeed(self):
         self.Worker1.stop()
         self.close()
+
+    def keyPressEvent(self, e):
+        if e.key() == QtCore.Qt.Key_Escape:
+            self.Worker1.stop()
+            self.close()
 
     def EmailStatus(self,status):
         self.e_status.setText(status)
@@ -194,7 +209,7 @@ class Worker1(QThread):
                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 255), 2)
                    face_roi = frame[y:y+h, x:x+w]
                    gray_roi = gray[y:y+h, x:x+w]
-                   smile = smile_cascade.detectMultiScale(gray_roi, 1.4, 45)
+                   smile = smile_cascade.detectMultiScale(gray_roi, 1.4, 40)
                    for x1, y1, w1, h1 in smile:
                        cv2.rectangle(face_roi, (x1, y1), (x1+w1, y1+h1), (0, 0, 255), 2)
                        time_stamp = datetime.datetime.now().strftime("%d-%m-%Y-%I:%M:%S %P")
