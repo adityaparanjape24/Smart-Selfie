@@ -140,8 +140,8 @@ class Email_worker(QThread):
         # create message object instance
         msg = MIMEMultipart()
         # setup the parameters of the message
-        password = "johkjngfpfienmwj"
-        msg['From'] ="smartselfie24@gmail.com"
+        password = "johkdgfdfienmwj"
+        msg['From'] ="#"
         msg['To'] = self.email_value
         msg['Subject'] = "Selfie Photos"
 
